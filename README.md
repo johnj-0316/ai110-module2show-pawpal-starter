@@ -65,30 +65,36 @@ Note: Hide in a treat
 Why: High priority; meets Mochi's need: feeding; fits in the time available, starting at 08:05.
 ```
 
-## 🧪 Testing PawPal+
+## Testing PawPal+
 
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python -m pytest
 ```
 
-Sample test output:
+The tests cover task completion and recurrence, priority and duration sorting,
+time-budget limits, consecutive non-overlapping schedule slots, multiple pets,
+empty schedules, explanation text, and invalid task values.
 
-```
+Successful test output:
+
+```text
 ============================= test session starts ==============================
-platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.7.0
-rootdir: .../ai110-module2show-pawpal-starter
+platform darwin -- Python 3.14.6, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/johnmartin0227/Documents/Workspace/python/ai110-module2show-pawpal-starter
 configfile: pytest.ini
-plugins: anyio-4.15.1
-collected 2 items
+plugins: anyio-4.12.1
+collected 18 items
 
-tests/tests/test_pawpal.py ..                                            [100%]
+tests/tests/test_pawpal.py ..................                            [100%]
 
-============================== 2 passed in 0.01s ===============================
+============================== 18 passed in 0.02s ==============================
 ```
+
+**Confidence Level:** (4/5)
+
+All currently tested behaviors pass. Confidence is four stars rather than five
+because the Streamlit interface is not covered by automated tests and additional
+real-world scheduling combinations could still reveal edge cases.
 
 ## Smarter Scheduling
 
