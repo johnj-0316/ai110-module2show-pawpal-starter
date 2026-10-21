@@ -196,6 +196,20 @@ if st.button("Generate schedule", type="primary"):
         col2.metric("Time used", f"{used} of {owner.available_minutes} min")
 
         if plan:
+            has_conflict = any(
+                current.start_time < previous._calculate_end_time()
+                for (_, previous), (_, current) in zip(plan, plan[1:])
+            )
+            if has_conflict:
+                st.warning(
+                    "Schedule generated, but at least two tasks overlap. "
+                    "Review their times before using this plan."
+                )
+            else:
+                st.success(
+                    "Schedule generated in priority order with no time conflicts."
+                )
+
             st.table(
                 [
                     {
@@ -209,10 +223,27 @@ if st.button("Generate schedule", type="primary"):
                 ]
             )
         else:
-            st.warning("None of your tasks fit in the time you have today.")
+            st.warning(
+                "No tasks were scheduled. They may be completed, not due today, "
+                "or too long for the available time."
+            )
 
         skipped = [(p, t) for p, t in all_tasks if not t.is_scheduled()]
         if skipped:
+            st.warning(
+                f"{len(skipped)} task{' was' if len(skipped) == 1 else 's were'} "
+                "filtered out of today's plan."
+            )
             st.markdown("**Not scheduled today**")
-            for p, t in skipped:
-                st.write(f"- {p.name}: {t.title}. {t.reason}")
+            st.table(
+                [
+                    {
+                        "Pet": p.name,
+                        "Task": t.title,
+                        "Priority": t.priority,
+                        "Minutes": t.duration_minutes,
+                        "Reason": t.reason or "Not eligible for today's plan.",
+                    }
+                    for p, t in skipped
+                ]
+            )

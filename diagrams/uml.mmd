@@ -52,9 +52,11 @@ classDiagram
         -build_skip_reason(task: Task, remaining_minutes: int, owner: Owner) str
     }
 
-    Owner "1" o-- "1..*" Pet : owns
-    Pet "1" o-- "0..*" Task : requires
-    Owner --> Scheduler : supplies constraints
-    Scheduler --> Pet : plans care for
-    Scheduler --> Task : schedules
-    Task ..> Task : next occurrence
+    Owner "1" o-- "0..*" Pet : owns
+    Pet "1" o-- "0..*" Task : contains
+    Scheduler ..> Owner : uses constraints from
+    Scheduler ..> Pet : plans care for
+    Scheduler ..> Task : filters and schedules
+    Task ..> Task : creates next occurrence
+
+    note for Task "Uses next_due_date() to calculate recurring occurrences"

@@ -51,13 +51,26 @@ By reading each line of code I understood and playing out the flow in my head. T
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+task completion, daily and weekly recurrence, priority sorting, time-budget fits, tasks that are too long for the remaining time, consecutive non-overlapping start times, and a shared schedule containing tasks for multiple pets.
+
+Edge cases include an owner with no pets, a pet with no tasks, a task
+that is not due yet, and invalid priorities, durations, and frequencies. Verified that schedule explanations mention matching pet needs and owner
+preferences.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+My confidence level is 4 out of 5 stars. I am confident in the core scheduling
+logic because every behavior currently covered by the automated suite passes,
+including sorting, available-time limits, recurrence, and multi-pet scheduling.
+I did not choose 5 stars because the Streamlit interface is not covered by
+automated tests and there may be combinations of real user data that the unit
+tests do not cover.
+
+With more time, I would test schedules that cross midnight, owners with zero or
+invalid available time, recurring tasks created without an initial due date,
+and much larger task lists. I would also add tests that simulate the Streamlit
+workflow, including adding pets and tasks, generating a plan, and displaying
+the correct warning when tasks are skipped.
 
 ---
 
@@ -65,12 +78,12 @@ By reading each line of code I understood and playing out the flow in my head. T
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+I am most satisfied with the structure of the project and the design choices I made in code separation/combination, algorithmic simplicity, and complexity balancing.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+Definitely the UX, a lot of the features could use dropdowns and other buttons to make everything easier and less type-heavy.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+AI is not good at designing systems and looking far ahead into a future of maintability and scalabilty for humans. While it can definitely produce algorithms well, it doesn't know how to make it readable and easy to change if needs update.
