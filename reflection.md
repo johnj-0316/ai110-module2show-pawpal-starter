@@ -34,14 +34,16 @@ It simplifies the class and prevents it from storing unnecessary data.
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used AI tools for brainstorming the classes and refactoring the changes I want. I looked over each line of code and questioned the AI's implementation.
+The prompts and questions that were most helpful involved asking for the purpose of the line of code and using my own knowledge to make it's implementations better. I also wanted to know the tradeoffs to make sure we don't go into scope creep.
 
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+One suggestion I did not accept was using a list for uniqueness instead of a set. The AI was hesistant to change the mmd simply because it had a list type on a property, and it caused uniqueness to run in O(n). I made sure to change the implementation into a set.
 
+- How did you evaluate or verify what the AI suggested?
+By reading each line of code I understood and playing out the flow in my head. Then I verify what I understand as well as get explanations for the implementations I don't get.
 ---
 
 ## 4. Testing and Verification

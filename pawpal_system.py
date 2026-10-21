@@ -24,6 +24,7 @@ class Task:
     completed: bool = False
 
     def __post_init__(self) -> None:
+        """Validate priority and duration, and normalize tags."""
         self.priority = self.priority.lower().strip()
         if self.priority not in PRIORITY_RANK:
             raise ValueError(
@@ -100,25 +101,17 @@ class Scheduler:
     """Builds a daily plan from an owner's constraints and their pets' tasks."""
 
     def __init__(self, day_start: time = time(8, 0)) -> None:
+        """Set the time of day the schedule starts."""
         self.day_start = day_start
 
     def create_schedule(
         self, owner: Owner, pet: Pet, tasks: list[Task], day: date
     ) -> list[Task]:
-        """Return the tasks chosen and ordered for the given day.
-
-        Tasks are placed back-to-back starting at ``day_start``, highest
-        priority first, until the owner's available minutes run out.
-        Tasks that don't fit are left unscheduled with a reason explaining why.
-        """
+        """Schedule one pet's tasks and return the ones that fit, in time order."""
         return [task for _, task in self._place_tasks(owner, [(pet, t) for t in tasks], day)]
 
     def create_daily_plan(self, owner: Owner, day: date) -> list[tuple[Pet, Task]]:
-        """Schedule every task for all of the owner's pets in one shared timeline.
-
-        Returns (pet, task) pairs in time order, so the owner is never
-        double-booked and their available minutes are shared across pets.
-        """
+        """Schedule all pets' tasks on one shared timeline as (pet, task) pairs."""
         pairs = [(pet, task) for pet in owner.pets for task in pet.tasks]
         return self._place_tasks(owner, pairs, day)
 

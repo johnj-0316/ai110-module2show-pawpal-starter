@@ -22,6 +22,17 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## 🛠️ Implementation Summary
+
+PawPal+ plans a pet owner's day of care tasks. The logic lives in `pawpal_system.py` and uses four classes (see `diagrams/uml.mmd`):
+
+- **`Owner`**: the person doing the care, with their `available_minutes` for the day, their `preferences`, and their `pets`.
+- **`Pet`**: an animal with a set of care `needs` and a list of `tasks`.
+- **`Task`**: one care activity with a duration, a priority (low/medium/high), and `tags` linking it to the pet's needs or the owner's preferences. Scheduling fills in its `start_time` and `reason`.
+- **`Scheduler`**: builds the plan. `create_daily_plan(owner, day)` gathers every pet's tasks and sorts them by priority. It places them one after another from 08:00 until the owner's time runs out, and explains why each task was scheduled or skipped.
+
+An owner has pets, and each pet has tasks. The scheduler uses all three without owning them, and each run rebuilds the plan from scratch. `main.py` prints a two-pet demo schedule, and `tests/` checks task completion and adding tasks to a pet.
+
 ## Getting started
 
 ### Setup
@@ -67,19 +78,29 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.7.0
+rootdir: .../ai110-module2show-pawpal-starter
+configfile: pytest.ini
+plugins: anyio-4.15.1
+collected 2 items
+
+tests/tests/test_pawpal.py ..                                            [100%]
+
+============================== 2 passed in 0.01s ===============================
 ```
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+The scheduler is greedy: it takes tasks in priority order and places each one right after the last, starting at 08:00, until the owner's available minutes run out.
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler._sort_tasks()` | High -> medium -> low priority. Ties go to the shorter task, so more tasks fit in the day. |
+| Filtering | `Scheduler._task_fits()`, `Scheduler._place_tasks()` | A task is skipped if it needs more minutes than are left. Skipped tasks stay unscheduled and get a reason, e.g. "Skipped: needs 25 min but only 0 min left in Jordan's day." |
+| Conflict handling | `Scheduler.create_daily_plan()`, `Scheduler._place_tasks()` | All pets' tasks share one timeline, and each task starts when the previous one ends, so the owner is never double-booked. Tasks can't request a fixed time of day yet. |
+| Recurring tasks | — | Not implemented. Tasks are planned for a single day; there is no daily/weekly repeat yet. |
+| Explanations | `Scheduler._build_reason()`, `Task.tags` | Each scheduled task gets a reason with its priority, start time, and any of the pet's needs or owner's preferences that match the task's tags. |
 
 ## 📸 Demo Walkthrough
 
