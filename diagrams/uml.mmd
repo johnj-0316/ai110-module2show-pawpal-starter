@@ -3,7 +3,9 @@ classDiagram
         +str name
         +int available_minutes
         +set~str~ preferences
+        +list~Pet~ pets
         +add_preference(preference: str) None
+        +add_pet(pet: Pet) None
     }
 
     class Pet {
@@ -11,7 +13,10 @@ classDiagram
         +str species
         +int age
         +set~str~ needs
+        +list~Task~ tasks
         +add_need(need: str) None
+        +add_task(task: Task) None
+        +complete_task(task: Task) Optional~Task~
     }
 
     class Task {
@@ -23,19 +28,28 @@ classDiagram
         +Optional~datetime~ start_time
         +Optional~str~ reason
         +bool completed
-        +mark_complete() None
+        +str frequency
+        +Optional~date~ due_date
+        +mark_complete() Optional~Task~
+        +is_recurring() bool
+        +is_due(day: date) bool
+        -next_occurrence() Optional~Task~
         +add_tag(tag: str) None
         +is_scheduled() bool
         -calculate_end_time() datetime
     }
 
     class Scheduler {
+        +time day_start
         +create_schedule(owner: Owner, pet: Pet, tasks: list~Task~, day: date) list~Task~
         +create_daily_plan(owner: Owner, day: date) list~tuple~Pet, Task~~
         -place_tasks(owner: Owner, pairs: list~tuple~Pet, Task~~, day: date) list~tuple~Pet, Task~~
+        -filter_tasks(tasks: list~Task~, day: date) list~Task~
         -sort_tasks(tasks: list~Task~) list~Task~
         -task_fits(task: Task, remaining_minutes: int) bool
+        -assign_slot(task: Task, next_free: datetime) datetime
         -build_reason(task: Task, owner: Owner, pet: Pet) str
+        -build_skip_reason(task: Task, remaining_minutes: int, owner: Owner) str
     }
 
     Owner "1" o-- "1..*" Pet : owns
@@ -43,3 +57,4 @@ classDiagram
     Owner --> Scheduler : supplies constraints
     Scheduler --> Pet : plans care for
     Scheduler --> Task : schedules
+    Task ..> Task : next occurrence

@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, time, timedelta
 from typing import Optional
 
 # Higher number = more important. Used for sorting and validation.
 PRIORITY_RANK = {"low": 1, "medium": 2, "high": 3}
+
+# Days until the next occurrence; "once" tasks don't repeat.
+FREQUENCY_DAYS = {"once": None, "daily": 1, "weekly": 7}
+
+
+def next_due_date(current: date, frequency: str) -> Optional[date]:
+    """Return the next due date for a frequency, or None if it doesn't repeat."""
+    days = FREQUENCY_DAYS[frequency]
+    return current + timedelta(days=days) if days else None
 
 
 @dataclass
@@ -22,9 +31,11 @@ class Task:
     start_time: Optional[datetime] = None
     reason: Optional[str] = None
     completed: bool = False
+    frequency: str = "once"  # "once" | "daily" | "weekly"
+    due_date: Optional[date] = None  # None = due any day
 
     def __post_init__(self) -> None:
-        """Validate priority and duration, and normalize tags."""
+        """Validate priority, duration and frequency, and normalize tags."""
         self.priority = self.priority.lower().strip()
         if self.priority not in PRIORITY_RANK:
             raise ValueError(
@@ -32,8 +43,13 @@ class Task:
             )
         if self.duration_minutes <= 0:
             raise ValueError("duration_minutes must be positive")
+        self.frequency = self.frequency.lower().strip()
+        if self.frequency not in FREQUENCY_DAYS:
+            raise ValueError(
+                f"frequency must be one of {list(FREQUENCY_DAYS)}, got {self.frequency!r}"
+            )
         # Normalize like Pet.needs / Owner.preferences so set matching works.
-        self.tags = {t.strip().lower() for t in self.tags if t.strip()}
+        self.tags = set(filter(None, map(lambda t: t.strip().lower(), self.tags)))
 
     def add_tag(self, tag: str) -> None:
         """Link this task to a need or preference (stored lowercase; blanks ignored)."""
@@ -41,9 +57,32 @@ class Task:
         if tag:
             self.tags.add(tag)
 
-    def mark_complete(self) -> None:
-        """Record that this task has been done."""
+    def mark_complete(self) -> Optional[Task]:
+        """Mark this task done and return its next occurrence if it repeats."""
         self.completed = True
+        return self._next_occurrence()
+
+    def is_recurring(self) -> bool:
+        """Return True if this task repeats daily or weekly."""
+        return FREQUENCY_DAYS[self.frequency] is not None
+
+    def is_due(self, day: date) -> bool:
+        """Return True if this task should be done on (or is overdue by) the given day."""
+        return self.due_date is None or self.due_date <= day
+
+    def _next_occurrence(self) -> Optional[Task]:
+        """Build a fresh, incomplete copy of this task for its next due date."""
+        if not self.is_recurring():
+            return None
+        due = next_due_date(self.due_date or date.today(), self.frequency)
+        return replace(
+            self,
+            tags=set(self.tags),
+            start_time=None,
+            reason=None,
+            completed=False,
+            due_date=due,
+        )
 
     def is_scheduled(self) -> bool:
         """Return True if this task has been placed in the plan."""
@@ -75,6 +114,13 @@ class Pet:
     def add_task(self, task: Task) -> None:
         """Attach a care task to this pet."""
         self.tasks.append(task)
+
+    def complete_task(self, task: Task) -> Optional[Task]:
+        """Mark a task done and add its next occurrence to this pet, if any."""
+        next_task = task.mark_complete()
+        if next_task is not None:
+            self.add_task(next_task)
+        return next_task
 
 
 @dataclass
@@ -118,33 +164,42 @@ class Scheduler:
     def _place_tasks(
         self, owner: Owner, pairs: list[tuple[Pet, Task]], day: date
     ) -> list[tuple[Pet, Task]]:
-        """Place tasks back-to-back by priority until the owner's time runs out."""
+        """Run filter → sort → fit → assign slot, and return the scheduled pairs."""
         pet_for = {id(task): pet for pet, task in pairs}
+        tasks = [task for _, task in pairs]
 
         # Clear results from any previous run so the plan is rebuilt fresh.
-        for _, task in pairs:
+        for task in tasks:
             task.start_time = None
             task.reason = None
 
-        current = datetime.combine(day, self.day_start)
+        next_free = datetime.combine(day, self.day_start)
         remaining = owner.available_minutes
         scheduled: list[tuple[Pet, Task]] = []
 
-        for task in self._sort_tasks([task for _, task in pairs]):
+        for task in self._sort_tasks(self._filter_tasks(tasks, day)):
             pet = pet_for[id(task)]
             if self._task_fits(task, remaining):
-                task.start_time = current
-                task.reason = self._build_reason(task, owner, pet)
-                current = task._calculate_end_time()
+                next_free = self._assign_slot(task, next_free)
                 remaining -= task.duration_minutes
+                task.reason = self._build_reason(task, owner, pet)
                 scheduled.append((pet, task))
             else:
-                task.reason = (
-                    f"Skipped: needs {task.duration_minutes} min but only "
-                    f"{remaining} min left in {owner.name}'s day."
-                )
+                task.reason = self._build_skip_reason(task, remaining, owner)
 
         return scheduled
+
+    def _filter_tasks(self, tasks: list[Task], day: date) -> list[Task]:
+        """Keep tasks that are pending and due on the day; record why the rest are skipped."""
+        ready: list[Task] = []
+        for task in tasks:
+            if task.completed:
+                task.reason = "Skipped: already completed."
+            elif not task.is_due(day):
+                task.reason = f"Not due until {task.due_date:%a %b %d}."
+            else:
+                ready.append(task)
+        return ready
 
     def _sort_tasks(self, tasks: list[Task]) -> list[Task]:
         """Order tasks by priority (high first), then shorter tasks first."""
@@ -155,6 +210,11 @@ class Scheduler:
     def _task_fits(self, task: Task, remaining_minutes: int) -> bool:
         """Return True if the task fits in the remaining time."""
         return task.duration_minutes <= remaining_minutes
+
+    def _assign_slot(self, task: Task, next_free: datetime) -> datetime:
+        """Start the task at the next free time and return when the timeline frees up again."""
+        task.start_time = next_free
+        return task._calculate_end_time()
 
     def _build_reason(self, task: Task, owner: Owner, pet: Pet) -> str:
         """Explain why this task was chosen and when it happens."""
@@ -171,3 +231,10 @@ class Scheduler:
         start = task.start_time.strftime("%H:%M") if task.start_time else "?"
         parts.append(f"fits in the time available, starting at {start}")
         return "; ".join(parts) + "."
+
+    def _build_skip_reason(self, task: Task, remaining_minutes: int, owner: Owner) -> str:
+        """Explain why a task didn't fit in the owner's remaining time."""
+        return (
+            f"Skipped: needs {task.duration_minutes} min but only "
+            f"{remaining_minutes} min left in {owner.name}'s day."
+        )

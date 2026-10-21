@@ -22,7 +22,7 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
-## 🛠️ Implementation Summary
+## Implementation Summary
 
 PawPal+ plans a pet owner's day of care tasks. The logic lives in `pawpal_system.py` and uses four classes (see `diagrams/uml.mmd`):
 
@@ -90,17 +90,19 @@ tests/tests/test_pawpal.py ..                                            [100%]
 ============================== 2 passed in 0.01s ===============================
 ```
 
-## 📐 Smarter Scheduling
+## Smarter Scheduling
 
-The scheduler is greedy: it takes tasks in priority order and places each one right after the last, starting at 08:00, until the owner's available minutes run out.
+Scheduler.create_daily_plan() builds the plan by filtering, sorting, and placing tasks in order, then explaining each decision.
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | `Scheduler._sort_tasks()` | High -> medium -> low priority. Ties go to the shorter task, so more tasks fit in the day. |
-| Filtering | `Scheduler._task_fits()`, `Scheduler._place_tasks()` | A task is skipped if it needs more minutes than are left. Skipped tasks stay unscheduled and get a reason, e.g. "Skipped: needs 25 min but only 0 min left in Jordan's day." |
-| Conflict handling | `Scheduler.create_daily_plan()`, `Scheduler._place_tasks()` | All pets' tasks share one timeline, and each task starts when the previous one ends, so the owner is never double-booked. Tasks can't request a fixed time of day yet. |
-| Recurring tasks | — | Not implemented. Tasks are planned for a single day; there is no daily/weekly repeat yet. |
-| Explanations | `Scheduler._build_reason()`, `Task.tags` | Each scheduled task gets a reason with its priority, start time, and any of the pet's needs or owner's preferences that match the task's tags. |
+Sorting: Scheduler._sort_tasks() orders tasks from high to medium to low priority.
+
+Filtering: Scheduler._filter_tasks() skips tasks that are already done or not due yet. Scheduler._task_fits() then skips any task that needs more time than the owner has left.
+
+Conflict handling: Scheduler._assign_slot() starts each task right after the previous one on a timeline shared by all pets. Conflicts aren't possible since tasks are added one after another, so detecting them isn't necessary.
+
+Recurring tasks: Completing a daily or weekly task with Pet.complete_task() automatically creates its next occurrence through Task.mark_complete(). The next due date counts from the original due date, so a weekly Monday task stays on Mondays.
+
+Explanations: Scheduler._build_reason() gives each scheduled task a reason based on its priority, start time, and any matching pet needs or owner preferences.
 
 ## 📸 Demo Walkthrough
 

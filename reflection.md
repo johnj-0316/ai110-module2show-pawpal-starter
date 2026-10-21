@@ -25,8 +25,9 @@ It simplifies the class and prevents it from storing unnecessary data.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+My scheduler is greedy. It sorts tasks by priority and places each one if it fits in the time left. It never goes back to try a different combination, so it doesn't always use the owner's time as well as it could. For example, with 60 minutes, a 50-minute high-priority task and two 30-minute medium tasks, it schedules only the high-priority task and skips both medium ones. Doing the two medium tasks instead would fill the full hour.
+
+I think this is reasonable for a pet owner because priority should win. If something is marked high priority, like meds or feeding, it should get done before lower-priority tasks, even if that means fewer tasks overall.
 
 ---
 
