@@ -11,8 +11,8 @@ Owner has pets. Pets have tasks.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Yes, my design changed during implentation. The AI initially wanted to store a start_time, end_time, and duration. However, I decided to remove the end_time property, as we can simply calculate it from the other two properties.
+It simplifies the class and prevents it from storing unnecessary data.
 
 ---
 

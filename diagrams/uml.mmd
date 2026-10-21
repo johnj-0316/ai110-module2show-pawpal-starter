@@ -2,7 +2,7 @@ classDiagram
     class Owner {
         +str name
         +int available_minutes
-        +list~str~ preferences
+        +set~str~ preferences
         +add_preference(preference: str) None
     }
 
@@ -10,7 +10,7 @@ classDiagram
         +str name
         +str species
         +int age
-        +list~str~ needs
+        +set~str~ needs
         +add_need(need: str) None
     }
 
@@ -19,14 +19,18 @@ classDiagram
         +int duration_minutes
         +str priority
         +str notes
+        +set~str~ tags
         +Optional~datetime~ start_time
         +Optional~str~ reason
+        +add_tag(tag: str) None
         +is_scheduled() bool
         -calculate_end_time() datetime
     }
 
     class Scheduler {
         +create_schedule(owner: Owner, pet: Pet, tasks: list~Task~, day: date) list~Task~
+        +create_daily_plan(owner: Owner, day: date) list~tuple~Pet, Task~~
+        -place_tasks(owner: Owner, pairs: list~tuple~Pet, Task~~, day: date) list~tuple~Pet, Task~~
         -sort_tasks(tasks: list~Task~) list~Task~
         -task_fits(task: Task, remaining_minutes: int) bool
         -build_reason(task: Task, owner: Owner, pet: Pet) str
