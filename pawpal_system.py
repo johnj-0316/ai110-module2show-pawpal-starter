@@ -21,6 +21,7 @@ class Task:
     tags: set[str] = field(default_factory=set)  # needs/preferences this task covers
     start_time: Optional[datetime] = None
     reason: Optional[str] = None
+    completed: bool = False
 
     def __post_init__(self) -> None:
         self.priority = self.priority.lower().strip()
@@ -38,6 +39,10 @@ class Task:
         tag = tag.strip().lower()
         if tag:
             self.tags.add(tag)
+
+    def mark_complete(self) -> None:
+        """Record that this task has been done."""
+        self.completed = True
 
     def is_scheduled(self) -> bool:
         """Return True if this task has been placed in the plan."""

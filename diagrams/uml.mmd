@@ -22,6 +22,8 @@ classDiagram
         +set~str~ tags
         +Optional~datetime~ start_time
         +Optional~str~ reason
+        +bool completed
+        +mark_complete() None
         +add_tag(tag: str) None
         +is_scheduled() bool
         -calculate_end_time() datetime

@@ -36,11 +36,11 @@ def main() -> None:
     print(f"Time available: {owner.available_minutes} min\n")
     for pet, task in plan:
         end = task._calculate_end_time()
-        print(f"  {task.start_time:%H:%M}-{end:%H:%M}  {pet.name:<6} {task.title} "
+        print(f"{task.start_time:%H:%M}-{end:%H:%M}  {pet.name:<6} {task.title} "
               f"({task.duration_minutes} min) [{task.priority}]")
-        print(f"               Why: {task.reason}")
+        print(f"Why: {task.reason}")
         if task.notes:
-            print(f"               Note: {task.notes}")
+            print(f"Note: {task.notes}")
 
     used = sum(task.duration_minutes for _, task in plan)
     print(f"\nScheduled {len(plan)} tasks, {used} of {owner.available_minutes} min used.")
