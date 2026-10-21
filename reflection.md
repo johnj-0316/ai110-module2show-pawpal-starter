@@ -4,8 +4,10 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+My initial UML design had 4 classes: owner, pet, tasks, and scheduler. The first 3 hold specific object data, and the scheduler class will be in charge of the planning using that data.
+
+Owner and Pet are aggregation relationships.
+Owner has pets. Pets have tasks.
 
 **b. Design changes**
 
