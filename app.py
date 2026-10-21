@@ -213,7 +213,7 @@ if st.button("Generate schedule", type="primary"):
             st.table(
                 [
                     {
-                        "Time": f"{t.start_time:%H:%M}–{t._calculate_end_time():%H:%M}",
+                        "Time": f"{t.start_time:%H:%M}-{t._calculate_end_time():%H:%M}",
                         "Pet": p.name,
                         "Task": t.title,
                         "Priority": t.priority,
